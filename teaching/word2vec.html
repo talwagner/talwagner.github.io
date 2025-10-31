@@ -1,0 +1,471 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Word2Vec Skip-gram — Fast + Schematic + Loss Coloring (Big Fonts v2)</title>
+<style>
+  :root{
+    --bg:#0b1020;
+    --panel:#121a2a;
+    --ink:#e5e9f0;
+    --muted:#a3acc3;
+    --accent:#79c0ff;
+    --pos:#9ae6b4;
+    --neg:#fdaeb7;
+    --center:#a5b4fc;
+    --arrow:#f6c177;
+  }
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial;}
+  .wrap{display:grid;grid-template-columns:340px 1fr;gap:16px;min-height:100vh;}
+  .sidebar{padding:16px;background:var(--panel);border-right:1px solid #1e293b;}
+  h1{font-size:20px;margin:0 0 8px 0;color:#e2e8f0}
+  h2{font-size:15px;margin:16px 0 8px 0;color:#e2e8f0}
+  p,li{color:var(--muted);font-size:14px;line-height:1.35}
+  .controls{display:grid;gap:10px;margin-top:8px}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  button{background:#1f2937;color:#e5e7eb;border:1px solid #334155;border-radius:10px;padding:8px 10px;cursor:pointer}
+  button:hover{background:#273244}
+  .slider{width:100%}
+  .info{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-size:12px;background:#0f172a;border:1px solid #1f2a44;border-radius:12px;padding:10px;color:#cbd5e1}
+  .stage{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto;gap:12px;padding:16px}
+  .panel{background:var(--panel);border:1px solid #1f2a44;border-radius:14px;position:relative;overflow:hidden}
+  .panel-wide{grid-column:1 / span 2}
+  .hdr{position:absolute;left:10px;top:6px;font-size:12px;color:#93a2bf;background:#0b1222;padding:4px 8px;border-radius:999px;border:1px solid #1e263a}
+  canvas{display:block;width:100%;height:420px}
+  .diag{height:320px}
+  .legend{display:flex;gap:10px;align-items:center;margin-top:8px}
+  .chip{display:inline-flex;gap:6px;align-items:center;font-size:12px;color:#cbd5e1}
+  .dot{width:10px;height:10px;border-radius:50%}
+  .dot.center{background:var(--center)}
+  .dot.pos{background:var(--pos)}
+  .dot.neg{background:var(--neg)}
+  .dot.other{background:#94a3b8}
+  .progress{height:8px;background:#0b1222;border:1px solid #1f2a44;border-radius:999px;overflow:hidden}
+  .bar{height:100%;width:0;background:linear-gradient(90deg,#60a5fa,#a78bfa)}
+  .footer{padding:12px;color:#97a6ba;font-size:12px}
+  .kbd{background:#0b1222;border:1px solid #1f2a44;border-radius:6px;padding:0 6px;margin:0 2px;color:#e5e9f0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="sidebar">
+    <h1>Word2Vec Skip-gram (NS) — Fast + Schematic + Loss Coloring</h1>
+    <p>Shows the forward (net→loss) and backward (loss→net) loop. Top plots color nodes by progress (red→green).</p>
+    <div class="controls">
+      <div class="row">
+        <button id="btnToggle">▶ Play</button>
+        <button id="btnStep">⏭ Step</button>
+        <button id="btnReset">↺ Reset</button>
+      </div>
+      <div class="row">
+        <label>Speed (steps/update): <span id="spdval">20</span></label>
+        <input id="spd" type="range" min="1" max="200" value="20" class="slider">
+      </div>
+      <div class="row">
+        <label>Negatives (k): <span id="kval">5</span></label>
+        <input id="k" type="range" min="1" max="20" value="5" class="slider">
+      </div>
+      <div class="row">
+        <label>Learning rate: <span id="lrval">0.050</span></label>
+        <input id="lr" type="range" min="1" max="100" value="50" class="slider">
+      </div>
+      <div class="row">
+        <label><input type="checkbox" id="showArrows" checked /> Show update arrows</label>
+      </div>
+      <div class="progress"><div class="bar" id="bar"></div></div>
+      <div class="info" id="info">Ready.</div>
+      <div class="footer">
+        Keys: <span class="kbd">Space</span> Play/Pause, <span class="kbd">→</span> Step, <span class="kbd">R</span> Reset
+      </div>
+    </div>
+  </div>
+  <div>
+    <div class="stage">
+      <div class="panel"><div class="hdr">Input space V (centers)</div><canvas id="cvV" width="600" height="420"></canvas></div>
+      <div class="panel"><div class="hdr">Output space U (contexts)</div><canvas id="cvU" width="600" height="420"></canvas></div>
+      <div class="panel panel-wide">
+        <div class="hdr">Schematic: network ↔ loss (forward/backward)</div>
+        <canvas id="cvDiag" class="diag" width="1200" height="320"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const D = 16;
+  const rnd = (a,b)=>a + Math.random()*(b-a);
+  const sigmoid = (x)=>1/(1+Math.exp(-x));
+  function dotND(a,b){ let s=0; for(let i=0;i<a.length;i++) s+=a[i]*b[i]; return s; }
+  function addInPlaceND(a,b,scale=1){ for(let i=0;i<a.length;i++) a[i]+=scale*b[i]; }
+  function scaleND(v,s){ const out=new Array(v.length); for(let i=0;i<v.length;i++) out[i]=v[i]*s; return out; }
+  function l2(v){ let s=0; for(let i=0;i<v.length;i++) s+=v[i]*v[i]; return Math.sqrt(s); }
+  function clipND(v, m){ const n=l2(v); if(n>m){ const s=m/n; for(let i=0;i<v.length;i++) v[i]*=s; } }
+  function clamp01(x){ return Math.max(0, Math.min(1, x)); }
+  function lerp(a,b,t){ return a + (b-a)*t; }
+  function colorRG(t){ t = clamp01(t); const r=Math.round(lerp(239,34,t)), g=Math.round(lerp(68,197,t)), b=Math.round(lerp(68,94,t)); return `rgb(${r},${g},${b})`; }
+
+  const P0 = Array.from({length:D}, _=>rnd(-1,1));
+  const P1 = Array.from({length:D}, _=>rnd(-1,1));
+  (function normRow(r){ const n=Math.sqrt(r.reduce((a,x)=>a+x*x,0)); for(let i=0;i<r.length;i++) r[i]/=n; })(P0);
+  (function normRow(r){ const n=Math.sqrt(r.reduce((a,x)=>a+x*x,0)); for(let i=0;i<r.length;i++) r[i]/=n; })(P1);
+  function proj2(v){ return [dotND(P0,v), dotND(P1,v)]; }
+  function proj2Delta(dv){ return [dotND(P0,dv), dotND(P1,dv)]; }
+
+  const sentences = [
+    ["king","is","a","man"],
+    ["queen","is","a","woman"],
+    ["king","and","queen","are","royal"],
+    ["man","and","woman","are","adults"],
+    ["apple","is","a","fruit"],
+    ["car","drives","on","road"],
+    ["city","has","a","road"],
+    ["royal","family","has","a","king","and","queen"]
+  ];
+  const stop = new Set([".",",",";","-","and","is","a","on","has","are"]);
+  const vocabSet = new Set();
+  sentences.forEach(s=>s.forEach(w=>{ if(!stop.has(w)) vocabSet.add(w); }));
+  const vocab = Array.from(vocabSet);
+
+  const V = {}; const U = {}; const Q = {};
+  vocab.forEach(w=>{
+    V[w] = Array.from({length:D}, _=>rnd(-0.2,0.2));
+    U[w] = Array.from({length:D}, _=>rnd(-0.2,0.2));
+    Q[w] = 0.25;
+  });
+
+  const windowSize = 2;
+  const pairs = [];
+  sentences.forEach(tokens=>{
+    for(let i=0;i<tokens.length;i++){
+      const w = tokens[i];
+      if(stop.has(w)) continue;
+      for(let d=-windowSize; d<=windowSize; d++){
+        if(d===0) continue;
+        const j = i+d;
+        if(j<0 || j>=tokens.length) continue;
+        const c = tokens[j];
+        if(stop.has(c)) continue;
+        pairs.push([w,c]);
+      }
+    }
+  });
+
+  function sampleNegatives(exclude, k){
+    const negs=[];
+    while(negs.length<k){
+      const w = vocab[Math.floor(Math.random()*vocab.length)];
+      if(w===exclude) continue;
+      if(!negs.includes(w)) negs.push(w);
+    }
+    return negs;
+  }
+
+  const btnToggle = document.getElementById('btnToggle');
+  const btnStep = document.getElementById('btnStep');
+  const btnReset = document.getElementById('btnReset');
+  const kSlider = document.getElementById('k');
+  const kVal = document.getElementById('kval');
+  const lrSlider = document.getElementById('lr');
+  const lrVal = document.getElementById('lrval');
+  const spdSlider = document.getElementById('spd');
+  const spdVal = document.getElementById('spdval');
+  const showArrows = document.getElementById('showArrows');
+  const info = document.getElementById('info');
+  const bar = document.getElementById('bar');
+  kVal.textContent = kSlider.value;
+  lrVal.textContent = (Number(lrSlider.value)/1000).toFixed(3);
+  spdVal.textContent = spdSlider.value;
+
+  const cvV = document.getElementById('cvV');
+  const cvU = document.getElementById('cvU');
+  const ctxV = cvV.getContext('2d');
+  const ctxU = cvU.getContext('2d');
+  const cvDiag = document.getElementById('cvDiag');
+  const dx = cvDiag.getContext('2d');
+
+  function computePositions(emb){
+    const pos = {}; let minx=1e9,maxx=-1e9,miny=1e9,maxy=-1e9;
+    vocab.forEach(w=>{
+      const p = proj2(emb[w]);
+      pos[w] = p;
+      if(p[0]<minx) minx=p[0]; if(p[0]>maxx) maxx=p[0];
+      if(p[1]<miny) miny=p[1]; if(p[1]>maxy) maxy=p[1];
+    });
+    return {pos, bounds:{minx,maxx,miny,maxy}};
+  }
+  function worldToScreen(p, canvas, bounds){
+    const pad=30;
+    const {minx,maxx,miny,maxy} = bounds;
+    const w = maxx - minx || 1, h = maxy - miny || 1;
+    const x = (p[0] - minx)/w*(canvas.width - 2*pad) + pad;
+    const y = (1 - (p[1] - miny)/h)*(canvas.height - 2*pad) + pad;
+    return [x,y];
+  }
+  let lastArrows=null;
+  function drawScatter(ctx, emb, highlight){
+    const {pos, bounds} = computePositions(emb);
+    ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
+    ctx.save();
+    ctx.strokeStyle = "#1e293b";
+    ctx.lineWidth = 1;
+    for(let i=0;i<10;i++){
+      const gx = i/9 * ctx.canvas.width;
+      ctx.beginPath(); ctx.moveTo(gx,0); ctx.lineTo(gx,ctx.canvas.height); ctx.stroke();
+    }
+    for(let j=0;j<8;j++){
+      const gy = j/7 * ctx.canvas.height;
+      ctx.beginPath(); ctx.moveTo(0,gy); ctx.lineTo(ctx.canvas.width,gy); ctx.stroke();
+    }
+    ctx.restore();
+
+    if(showArrows.checked && highlight && lastArrows){
+      const {w,c,negs} = highlight;
+      if(emb===V){
+        drawArrow(ctx, worldToScreen(pos[w], ctx.canvas, bounds), lastArrows.dv2, "#f6c177");
+      } else {
+        drawArrow(ctx, worldToScreen(pos[c], ctx.canvas, bounds), lastArrows.duc2, "#9ae6b4");
+        lastArrows.neg2.forEach(({n,delta})=>{
+          drawArrow(ctx, worldToScreen(pos[n], ctx.canvas, bounds), delta, "#fdaeb7");
+        });
+      }
+    }
+
+    vocab.forEach(word=>{
+      const p = worldToScreen(pos[word], ctx.canvas, bounds);
+      ctx.beginPath(); ctx.arc(p[0], p[1], 7, 0, Math.PI*2);
+      ctx.fillStyle = colorRG(Q[word]); ctx.fill();
+      let stroke="#94a3b8";
+      if(highlight){
+        if(word===highlight.w) stroke="var(--center)";
+        else if(word===highlight.c) stroke="var(--pos)";
+        else if(highlight.negs.includes(word)) stroke="var(--neg)";
+      }
+      ctx.lineWidth=2; ctx.strokeStyle=stroke; ctx.stroke();
+      ctx.font="12px ui-monospace,monospace"; ctx.fillStyle="#cbd5e1"; ctx.fillText(word, p[0]+9, p[1]-9);
+    });
+  }
+  function drawArrow(ctx, fromXY, deltaXY, color){
+    const a = fromXY;
+    const b = [a[0]+deltaXY[0], a[1]+deltaXY[1]];
+    ctx.beginPath(); ctx.moveTo(a[0],a[1]); ctx.lineTo(b[0],b[1]);
+    ctx.strokeStyle=color; ctx.lineWidth=2; ctx.stroke();
+    const ang = Math.atan2(b[1]-a[1], b[0]-a[0]);
+    const head=6;
+    ctx.beginPath();
+    ctx.moveTo(b[0],b[1]);
+    ctx.lineTo(b[0]-head*Math.cos(ang-Math.PI/6), b[1]-head*Math.sin(ang-Math.PI/6));
+    ctx.lineTo(b[0]-head*Math.cos(ang+Math.PI/6), b[1]-head*Math.sin(ang+Math.PI/6));
+    ctx.closePath(); ctx.fillStyle=color; ctx.fill();
+  }
+
+  // Schematic (only two changes: labels "V"/"U", formula under circle)
+  let emaLoss=null, minLoss=Infinity, maxLoss=0, arrowPhase=0;
+  function quadPoint(A,B,C,t){ const u=1-t; return {x:u*u*A.x + 2*u*t*B.x + t*t*C.x, y:u*u*A.y + 2*u*t*B.y + t*t*C.y}; }
+  function drawDiag(){
+    const W=cvDiag.width, H=cvDiag.height;
+    dx.clearRect(0,0,W,H);
+    const netX=80, netY=30, netW=380, netH=220;
+    const lossCX=W-160, lossCY=H/2, lossR=80;
+
+    let meanQ=0; vocab.forEach(w=>{ meanQ += Q[w]; }); meanQ/=vocab.length;
+    let lossG=0.5;
+    if(emaLoss!=null){
+      const range = Math.max(1e-6, maxLoss - minLoss);
+      lossG = clamp01(1 - (emaLoss - minLoss)/range);
+    }
+
+    dx.fillStyle=colorRG(meanQ);
+    dx.strokeStyle="#1f2a44"; dx.lineWidth=2;
+    dx.fillRect(netX, netY, netW, netH);
+    dx.strokeRect(netX, netY, netW, netH);
+    dx.fillStyle="rgba(0,0,0,0.12)";
+    dx.fillRect(netX+12, netY+12, (netW-36)/2, netH-24);
+    dx.fillRect(netX+24+(netW-36)/2, netY+12, (netW-36)/2, netH-24);
+    dx.fillStyle="#e5e9f0"; dx.font="22px ui-monospace,monospace";
+    dx.fillText("V", netX+22, netY+40);
+    dx.fillText("U", netX+28+(netW-36)/2, netY+40);
+    dx.fillStyle="#cbd5e1"; dx.font="16px ui-monospace,monospace";
+    dx.fillText(`mean progress: ${(meanQ*100).toFixed(0)}%`, netX+22, netY+netH-12);
+
+    dx.beginPath(); dx.arc(lossCX, lossCY, lossR, 0, Math.PI*2);
+    dx.fillStyle=colorRG(lossG); dx.fill();
+    dx.strokeStyle="#1f2a44"; dx.lineWidth=2; dx.stroke();
+    dx.fillStyle="#0b1222"; dx.beginPath(); dx.arc(lossCX, lossCY, lossR-24, 0, Math.PI*2); dx.fill();
+    dx.fillStyle="#e5e9f0"; dx.font="22px ui-monospace,monospace";
+    dx.textAlign="center"; dx.fillText("LOSS", lossCX, lossCY-4);
+    // Formula moved BELOW the circle
+    dx.font="16px ui-monospace,monospace"; dx.fillStyle="#cbd5e1";
+    dx.fillText("L = -log σ(u·v) - Σ log σ(-u_n·v)", lossCX, lossCY + lossR + 24);
+    if(emaLoss!=null){
+      dx.fillText(`EMA loss: ${emaLoss.toFixed(3)}`, lossCX, lossCY + lossR + 48);
+    }
+    dx.textAlign="left";
+
+    const A1={x:netX+netW, y:netY+40}, B1={x:(netX+netW+lossCX)/2, y:netY-10}, C1={x:lossCX-lossR, y:lossCY-10};
+    const A2={x:lossCX-lossR, y:lossCY+10}, B2={x:(netX+netW+lossCX)/2, y:netY+netH+20}, C2={x:netX+netW, y:netY+netH-40};
+    dx.strokeStyle="#f2cc8f"; dx.lineWidth=2;
+    dx.beginPath(); dx.moveTo(A1.x,A1.y); dx.quadraticCurveTo(B1.x,B1.y,C1.x,C1.y); dx.stroke();
+    dx.beginPath(); dx.moveTo(A2.x,A2.y); dx.quadraticCurveTo(B2.x,B2.y,C2.x,C2.y); dx.stroke();
+    function drawArrowHead(x,y,ang,col){
+      const head=7;
+      dx.fillStyle=col;
+      dx.beginPath();
+      dx.moveTo(x,y);
+      dx.lineTo(x-head*Math.cos(ang-Math.PI/6), y-head*Math.sin(ang-Math.PI/6));
+      dx.lineTo(x-head*Math.cos(ang+Math.PI/6), y-head*Math.sin(ang+Math.PI/6));
+      dx.closePath(); dx.fill();
+    }
+    const tHead=0.97;
+    const P1=quadPoint(A1,B1,C1,tHead), P0=quadPoint(A1,B1,C1,tHead-0.02);
+    drawArrowHead(P1.x,P1.y,Math.atan2(P1.y-P0.y,P1.x-P0.x),"#f2cc8f");
+    const Q1=quadPoint(A2,B2,C2,tHead), Q0=quadPoint(A2,B2,C2,tHead-0.02);
+    drawArrowHead(Q1.x,Q1.y,Math.atan2(Q1.y-Q0.y,Q1.x-Q0.x),"#f2cc8f");
+
+    const tFwd = (arrowPhase)%1;
+    const tBwd = (arrowPhase+0.5)%1;
+    const DF=quadPoint(A1,B1,C1,tFwd), DB=quadPoint(A2,B2,C2,tBwd);
+    dx.fillStyle="#ffd166"; dx.beginPath(); dx.arc(DF.x, DF.y, 5, 0, Math.PI*2); dx.fill();
+    dx.fillStyle="#8ecae6"; dx.beginPath(); dx.arc(DB.x, DB.y, 5, 0, Math.PI*2); dx.fill();
+
+    dx.fillStyle="#e5e9f0"; dx.font="16px ui-monospace,monospace";
+    dx.fillText("forward: compute loss from current U,V", netX+netW+10, netY+14);
+    dx.fillText("backward: take gradient step to update U,V", netX+netW+10, netY+netH-4);
+  }
+
+  // Training state (as in v3)
+  let t = 0;
+  let order = [...pairs.keys()];
+  function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0; [a[i],a[j]]=[a[j],a[i]]; } }
+  shuffle(order);
+
+  let playing=false, rafId=null, lastTs=0, accum=0;
+  let lastWCN=null;
+  function formatInfo(step, w, c, negs, sPos, sNegs, lr, loss){
+    const meanNeg = sNegs.reduce((a,b)=>a+b,0)/sNegs.length;
+    return [
+      `Step ${step+1}/${pairs.length} | center="${w}"  context="${c}" | k=${kSlider.value}  lr=${lr.toFixed(3)}  D=${D}`,
+      `σ(u_c·v_w)=${sPos.toFixed(3)}   avg σ(u_n·v_w)=${meanNeg.toFixed(3)}   loss=${loss.toFixed(3)}`,
+      `Objective: -log σ(pos) - Σ log σ(-neg)`
+    ].join("\\n");
+  }
+
+  function trainOne(){
+    const idx = order[t % order.length];
+    const [w,c] = pairs[idx];
+    const k = Number(kSlider.value);
+    const lr = Number(lrSlider.value)/1000;
+    const negs = sampleNegatives(c, k);
+
+    const sPos = sigmoid(dotND(U[c], V[w]));
+    const sNegs = negs.map(n => sigmoid(dotND(U[n], V[w])));
+    const eps = 1e-6;
+    const stepLoss = -Math.log(sPos+eps) - sNegs.reduce((s,x)=>s+Math.log(1-x+eps),0);
+
+    const dv = new Array(D).fill(0);
+    addInPlaceND(dv, U[c], (sPos - 1));
+    sNegs.forEach((s,i)=> addInPlaceND(dv, U[negs[i]], s) );
+    const duc = scaleND(V[w], (sPos - 1));
+    const duns = negs.map((n,i)=> ({n, du: scaleND(V[w], sNegs[i])}));
+
+    clipND(dv, 0.5); clipND(duc, 0.5); duns.forEach(o=>clipND(o.du,0.5));
+
+    const arrowScale = -lr * 160;
+    lastArrows = {
+      dv2: proj2Delta(scaleND(dv, arrowScale)),
+      duc2: proj2Delta(scaleND(duc, arrowScale)),
+      neg2: duns.map(o=>({n:o.n, delta: proj2Delta(scaleND(o.du, arrowScale))}))
+    };
+
+    addInPlaceND(V[w], dv, -lr);
+    addInPlaceND(U[c], duc, -lr);
+    duns.forEach(o => addInPlaceND(U[o.n], o.du, -lr));
+
+    vocab.forEach(word=>{
+      addInPlaceND(V[word], V[word], -0.001);
+      addInPlaceND(U[word], U[word], -0.001);
+    });
+
+    const meanNeg = sNegs.reduce((a,b)=>a+b,0)/sNegs.length;
+    const scoreW = clamp01((sPos - meanNeg + 1)/2);
+    Q[w] = 0.9*Q[w] + 0.1*scoreW;
+    Q[c] = 0.9*Q[c] + 0.1*sPos;
+    negs.forEach((n,i)=>{ Q[n] = 0.9*Q[n] + 0.1*(1 - sNegs[i]); });
+
+    if(emaLoss==null) emaLoss = stepLoss;
+    else emaLoss = 0.98*emaLoss + 0.02*stepLoss;
+    if(stepLoss<minLoss) minLoss=stepLoss;
+    if(stepLoss>maxLoss) maxLoss=stepLoss;
+
+    info.textContent = formatInfo(t, w, c, negs, sPos, sNegs, lr, stepLoss);
+    bar.style.width = `${((t % order.length)+1)/order.length*100}%`;
+
+    lastWCN = {w,c,negs};
+    drawScatter(ctxV, V, lastWCN);
+    drawScatter(ctxU, U, lastWCN);
+    arrowPhase = (arrowPhase + 0.02) % 1;
+    drawDiag();
+
+    t = (t+1) % order.length;
+    if(t===0){ shuffle(order); }
+  }
+
+  function resetAll(){
+    vocab.forEach(w=>{
+      V[w] = Array.from({length:D}, _=>rnd(-0.2,0.2));
+      U[w] = Array.from({length:D}, _=>rnd(-0.2,0.2));
+      Q[w] = 0.25;
+    });
+    shuffle(order);
+    t=0; lastArrows=null; lastWCN=null;
+    emaLoss=null; minLoss=Infinity; maxLoss=0; arrowPhase=0;
+    info.textContent = "Reset. Press Play or Step.";
+    bar.style.width = "0%";
+    drawScatter(ctxV, V, null);
+    drawScatter(ctxU, U, null);
+    drawDiag();
+    setToggle(false);
+  }
+
+  function loop(ts){
+    if(!playing){ return; }
+    if(!lastTs) lastTs = ts;
+    const dt = ts - lastTs; lastTs = ts;
+    accum += dt;
+    const sPerUpd = Number(spdSlider.value);
+    const frameInterval = 50;
+    while(accum >= frameInterval){
+      for(let i=0;i<sPerUpd;i++) trainOne();
+      accum -= frameInterval;
+    }
+    rafId = requestAnimationFrame(loop);
+  }
+
+  function setToggle(state){
+    playing = state;
+    btnToggle.textContent = playing ? "⏸ Pause" : "▶ Play";
+    if(playing){ lastTs=0; accum=0; rafId=requestAnimationFrame(loop); }
+    else { if(rafId) cancelAnimationFrame(rafId); }
+  }
+
+  btnToggle.onclick = ()=> setToggle(!playing);
+  btnStep.onclick = ()=>{ setToggle(false); trainOne(); };
+  btnReset.onclick = ()=> resetAll();
+  kSlider.oninput = ()=>{ kVal.textContent = kSlider.value; };
+  lrSlider.oninput = ()=>{ lrVal.textContent = (Number(lrSlider.value)/1000).toFixed(3); };
+  spdSlider.oninput = ()=>{ spdVal.textContent = spdSlider.value; };
+
+  window.addEventListener('keydown', (e)=>{
+    if(e.code==="Space"){ e.preventDefault(); setToggle(!playing); }
+    if(e.code==="ArrowRight"){ e.preventDefault(); btnStep.click(); }
+    if(e.key==="r" || e.key==="R"){ e.preventDefault(); btnReset.click(); }
+  });
+
+  resetAll();
+})();
+</script>
+</body>
+</html>

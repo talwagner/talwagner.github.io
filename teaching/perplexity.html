@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Live Perplexity (created with OpenAI's GPT5)</title>
+<style>
+  :root{
+    --bg:#0b1020; --panel:#121a2a; --ink:#e6edf3; --muted:#9aa7bd; --accent:#79c0ff;
+  }
+  html,body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial}
+  .wrap{max-width:900px;margin:32px auto;padding:0 16px}
+  h1{font-size:20px;margin:0 0 8px 0}
+  .card{background:var(--panel);border:1px solid #1f2a44;border-radius:12px;padding:16px;margin-top:12px}
+  .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+  label{font-size:12px;color:var(--muted)}
+  select,button,input[type="checkbox"]{background:#182238;color:var(--ink);border:1px solid #2a3957;border-radius:8px;padding:8px 10px}
+  textarea{width:100%;min-height:140px;background:#0e172a;color:var(--ink);border:1px solid #2a3957;border-radius:10px;padding:10px}
+  .pill{display:inline-block;font:12px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;background:#0e172a;border:1px solid #24324e;border-radius:999px;padding:6px 10px;margin-right:8px}
+  .muted{color:var(--muted)}
+  .ok{color:#9ae6b4} .warn{color:#f6c177}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Live Perplexity Demo (created with OpenAI's GPT5)</h1>
+  <div class="muted">Pick a small causal LM, type text, and see perplexity update. First run downloads the model.</div>
+
+  <div class="card">
+    <div class="row" style="margin-bottom:8px">
+      <div>
+        <label for="model">Model</label><br/>
+        <select id="model">
+          <!-- Keep these small; larger models will be slow to download/run in-browser -->
+          <option value="Xenova/distilgpt2" selected>Xenova/distilgpt2 (fastest)</option>
+          <option value="Xenova/gpt2">Xenova/gpt2 (larger)</option>
+        </select>
+      </div>
+      <div>
+        <label>Compute as you type</label><br/>
+        <label><input id="live" type="checkbox" checked /> enabled</label>
+      </div>
+      <div>
+        <label for="maxlen">Max tokens (truncate)</label><br/>
+        <select id="maxlen">
+          <option>128</option>
+          <option selected>256</option>
+          <option>512</option>
+        </select>
+      </div>
+      <div class="muted" id="status">Status: <span class="warn">loading on demand…</span></div>
+    </div>
+
+    <textarea id="text" placeholder="Type or paste some text…"></textarea>
+
+    <div class="row" style="margin-top:10px">
+      <button id="compute">Compute</button>
+      <span class="pill" id="ppl">PPL: –</span>
+      <span class="pill" id="tok">Tokens: –</span>
+      <span class="pill" id="lat">Latency: –</span>
+    </div>
+  </div>
+
+  <div class="card muted" style="font-size:13px">
+    <b>Notes</b> · This page uses <code>@xenova/transformers</code> in the browser. Perplexity is defined for causal (GPT-style) LMs.
+  </div>
+</div>
+
+<script type="module">
+/*
+  Browser-only perplexity demo using transformers.js
+  - Small causal LMs: Xenova/distilgpt2 (recommended), Xenova/gpt2
+  - Computes true perplexity in one forward pass (teacher-forcing)
+*/
+
+import {
+  AutoTokenizer,
+  AutoModelForCausalLM,
+  env
+} from "https://cdn.jsdelivr.net/npm/@xenova/transformers@2.6.0";
+
+// Optional: control WASM threading/backends (defaults are fine)
+env.allowLocalModels = false;
+
+const els = {
+  model:   document.getElementById('model'),
+  live:    document.getElementById('live'),
+  maxlen:  document.getElementById('maxlen'),
+  text:    document.getElementById('text'),
+  status:  document.getElementById('status'),
+  ppl:     document.getElementById('ppl'),
+  tok:     document.getElementById('tok'),
+  lat:     document.getElementById('lat'),
+  compute: document.getElementById('compute'),
+};
+
+// Cache the loaded model/tokenizer
+const cache = new Map(); // model_id -> { tokenizer, model }
+
+async function load(model_id) {
+  if (cache.has(model_id)) return cache.get(model_id);
+  setStatus(`Loading ${model_id}… (first time may take a bit)`);
+  const t0 = performance.now();
+  const tokenizer = await AutoTokenizer.from_pretrained(model_id);
+  const model     = await AutoModelForCausalLM.from_pretrained(model_id);
+  const dt = ((performance.now() - t0)/1000).toFixed(2);
+  setStatus(`Loaded ${model_id} in ${dt}s. Ready.`);
+  const pack = { tokenizer, model };
+  cache.set(model_id, pack);
+  return pack;
+}
+
+function setStatus(msg, kind="") {
+  els.status.innerHTML = `Status: <span class="${kind}">${msg}</span>`;
+}
+
+function setResult(ppl=null, tokens=null, latency_ms=null) {
+  els.ppl.textContent = `PPL: ${ppl===null ? "–" : ppl}`;
+  els.tok.textContent = `Tokens: ${tokens===null ? "–" : tokens}`;
+  els.lat.textContent = `Latency: ${latency_ms===null ? "–" : (latency_ms/1000).toFixed(2) + "s"}`;
+}
+
+// Stable log-softmax for a slice of logits
+function logSoftmaxRow(data, offset, V) {
+  let mx = -Infinity;
+  for (let j = 0; j < V; j++) { const z = data[offset + j]; if (z > mx) mx = z; }
+  let sum = 0;
+  for (let j = 0; j < V; j++) { sum += Math.exp(data[offset + j] - mx); }
+  const logden = Math.log(sum) + mx;
+  return (id) => data[offset + id] - logden;
+}
+
+// Compute true perplexity for a causal LM in a single forward pass
+async function causalPerplexity(text, model_id, max_positions=256) {
+  const { tokenizer, model } = await load(model_id);
+
+  // Tokenize (truncate to keep UI responsive)
+  const t_tok0 = performance.now();
+  const inputs = await tokenizer(text, { truncation: true, max_length: Number(max_positions) });
+  const ids    = inputs.input_ids;         // Tensor [1, L]
+  const attn   = inputs.attention_mask;    // Tensor [1, L]
+  const L      = ids.dims[1] || ids.dims[0];
+  if (!L || L <= 1) return { ppl: NaN, tokens: L, t_ms: performance.now() - t_tok0 };
+
+  // Forward pass
+  const t0 = performance.now();
+  const out = await model({ input_ids: ids, attention_mask: attn }); // logits: [1, L, V]
+  const t1 = performance.now();
+
+  const logits = out.logits;
+  const V      = logits.dims[2];
+  const data   = logits.data;               // Float32Array length L*V
+  const tgt    = ids.data;                  // Int array (BigInt64Array or Int32Array)
+
+  // Teacher-forcing NLL over tokens 1..L-1
+  let nll = 0;
+  for (let t = 0; t < L-1; t++) {
+    const offset = t * V;                   // [batch=0, position=t, :]
+    const lsm = logSoftmaxRow(data, offset, V);
+    const target_id = Number(tgt[t+1]);     // next token
+    nll += -lsm(target_id);
+  }
+  const ppl = Math.exp(nll / (L-1));
+  return { ppl, tokens: L, t_ms: (performance.now() - t_tok0) + (t1 - t0) };
+}
+
+// Debounce to avoid recomputing on every keystroke
+function debounce(fn, ms) {
+  let h; return (...args) => { clearTimeout(h); h = setTimeout(() => fn(...args), ms); };
+}
+
+const update = debounce(async () => {
+  const text = els.text.value || "";
+  const model_id = els.model.value;
+  const maxlen = Number(els.maxlen.value);
+  if (!text.trim()) { setResult(null, 0, null); return; }
+  setStatus("Computing…");
+  setResult("…", "…", 0);
+
+  try {
+    const { ppl, tokens, t_ms } = await causalPerplexity(text, model_id, maxlen);
+    const pplStr = Number.isFinite(ppl) ? ppl.toFixed(3) : "n/a";
+    setResult(pplStr, tokens, t_ms);
+    setStatus("Done.", "ok");
+  } catch (e) {
+    console.error(e);
+    setStatus("Error (see console).", "warn");
+    setResult(null, null, null);
+  }
+}, 500);
+
+// Wire up UI
+els.compute.addEventListener('click', update);
+els.text.addEventListener('input', () => { if (els.live.checked) update(); });
+els.model.addEventListener('change', async () => { await load(els.model.value); update(); });
+els.maxlen.addEventListener('change', update);
+
+// Lazy-load the default model on first interaction; or eagerly load:
+load(els.model.value).then(() => setStatus("Ready. Type to compute.")); 
+</script>
+</body>
+</html>

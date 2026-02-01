@@ -1,17 +1,515 @@
-<!DOCTYPE html>
-<html>
-  
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
 <head>
-    <title>HTML Redirect</title>
-    <meta http-equiv="refresh" content="0; url =
-    https://www.mit.edu/~talw" />
+
+<meta name="Description" content="Tal Wagner's academic homepage" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<meta name="Author" content="Tal Wagner" />
+<meta name="Robots" content="index,follow" />	
+
+<link rel="stylesheet" href="talwhomepage.css" type="text/css" />
+
+<title>Tal Wagner</title>
+
+<style type="text/css">
+  .selected {
+    width:100%;
+    display: block;
+  }
+  .regular {
+    width:100%;
+    display: none;
+  }
+  .never {
+    width:100%;
+    display: none;
+  }
+  .venuename {
+    color: #990000;
+  }
+  .oldnews {
+    width:100%;
+    display: none;
+  }
+</style>
+	
+<script type="text/javascript">
+
+function showAll(toggle){
+  var elem;
+  if (toggle){
+    document.getElementById('showpub').innerHTML='[ <b>selected</b> | <a href="javascript:void(0)" onclick="showAll(false)">all</a> ]</a>';
+  } else {
+    document.getElementById('showpub').innerHTML='[ <a href="javascript:void(0)" onclick="showAll(true)">selected</a> | <b>all</b> ]</a>';
+  }
+  elem=document.getElementById('last_paper');
+  for(elem; elem.previousSibling!=null; elem = elem.previousSibling){
+    if (elem.className == "regular"){
+      if (elem.style.display == "block"){
+        elem.style.display = "";
+      } else {
+        elem.style.display = "block";
+      }
+    }
+  }
+  return true;
+}
+
+function showNews(toggle){
+  var elem;
+  if (toggle){
+    document.getElementById('morelessnews').innerHTML='[ <b>recent</b> | <a href="javascript:void(0)" onclick="showNews(false)">all</a> ]';
+  } else {
+    document.getElementById('morelessnews').innerHTML='[ <a href="javascript:void(0)" onclick="showNews(true)">recent</a> | <b>all</b> ]';
+  }
+  elem = document.getElementById('oldnews');
+  if (elem.style.display == "block") {
+    elem.style.display = "";
+  } else {
+    elem.style.display = "block";
+  }
+  return true;
+}
+</script>
+
 </head>
-  
+
 <body>
-    <p style="text-align:center;">
-        Redirecting to Tal Wagner: Academic Homepage
-    </p>
-  
+<div id="maindiv">
+
+	<div id="header">	
+		<h1 id="title">Tal Wagner</h1>	
+		<!--<h1 id="titleheb">&#1496;&#1500; &#1493;&#1490;&#1504;&#1512;</h1>-->
+	</div>
+		
+	<div id="main">
+	
+		<div id="subheader">	
+			<h2 id="subtitle">Academic Homepage</h2>		
+		</div>
+		
+		<img alt="Personal photo" src="images/profilepic.png" align="right" style="margin: 0px 20px">
+
+			
+		<p>
+		I am an Assistant Professor (Senior Lecturer) in the School of Computer Science and AI in Tel Aviv University and a scientist in Amazon AWS. 
+                Before that I was a postdoc in the <a href="https://www.microsoft.com/en-us/research/group/mlog/#">Machine Learning Foundations group</a> at <a href="https://www.microsoft.com/en-us/research/lab/microsoft-research-redmond/">Microsoft Research Redmond</a> (2020-2022), and obtained my PhD in Computer Science at CSAIL, MIT in 2020, advised by <a href="http://people.csail.mit.edu/indyk">Piotr Indyk</a>.</p><p>
+                My research interests are in algorithm design for massive datasets and machine learning.
+
+		<p><b>Email:</b> firstname (dot) lastname (at) gmail (dot) com</p>
+		
+		<!-- <br/><hr/>
+		<h2>Updates</h2>
+		<div id="morelessnews" style="color: #445566; margin: 0 10px 20px 10px; padding: 0 15px;">[ <b>recent</b> | <a href="javascript:void(0)" onclick="showNews(false)">all</a> ]</a></div>
+		<ul><table>
+                    <!-- Example: <tr><td><li/></td><td><span style="color: #888888;">(Aug'20)&nbsp;&nbsp;</span></td><td>I completed my PhD in MIT.</td></tr> -->
+                    <!--
+					<tr><td><li/></td><td><span style="color: #888888;">(Apr'23)&nbsp;&nbsp;</span></td><td>Our work on fast differentially private KDE is accepted to ICML'23 as an oral presentation.</td></tr>
+                    <tr><td><li/></td><td><span style="color: #888888;">(Sep'22)&nbsp;&nbsp;</span></td><td>Our work on exponentially improved WL simulation with GNNs is accepted to NeurIPS'22.</td></tr>
+                    <tr><td><li/></td><td><span style="color: #888888;">(Aug'22)&nbsp;&nbsp;</span></td><td>I joined Amazon AWS as a Senior Applied Scientist.</td></tr>
+                    <tr><td><li/></td><td><span style="color: #888888;">(Jul'22)&nbsp;&nbsp;</span></td><td>I spoke at the <a href="https://sites.google.com/view/qgotm">workshop on Quantitative Geometry of Transportation Metrics </a> in the <a href="https://ams-ems-smf2022.inviteo.fr/">AMS-EMS-SMF 2022</a> meeting.</td></tr>
+		    <tr><td><li/></td><td><span style="color: #888888;">(May'22)&nbsp;&nbsp;</span></td><td>Our work on support-aware histograms is accepted to ICML'22.</td></tr>
+                </table></ul>
+
+                <div class="oldnews" id="oldnews">
+                  <ul><table>
+                      <tr><td><li/></td><td><span style="color: #888888;">(May'22)&nbsp;&nbsp;</span></td><td>Our work on generalization bounds for numerical linear algebra is accepted to COLT'22.</td></tr>
+                      <tr><td><li/></td><td><span style="color: #888888;">(May'22)&nbsp;&nbsp;</span></td><td>Attending the <a href="https://alps2022.epfl.ch/">Workshop on Algorithms with Predictions</a> (ALPS 2022) in EPFL.</td></tr>
+		      <tr><td><li/></td><td><span style="color: #888888;">(Jan'22)&nbsp;&nbsp;</span></td><td>Our work on learning-augmented motif counting on graph streams is accepted to ICLR'22.</td></tr>
+		      <tr><td><li/></td><td><span style="color: #888888;">(Nov'21)&nbsp;&nbsp;</span></td><td>Our work on <a href="https://arxiv.org/abs/2110.03152">optimal metric compression</a> is accepted to the SIAM Journal on Computing.</td></tr>
+		      <tr><td><li/></td><td><span style="color: #888888;">(Nov'21)&nbsp;&nbsp;</span></td><td>Honored to have been selected for the <a href="https://cdac.uchicago.edu/rising-stars/">Rising Stars in Data Science</a> workshop at the University of Chicago.</td></tr>
+                      <tr><td><li/></td><td><span style="color: #888888;">(Sep'21)&nbsp;&nbsp;</span></td><td>Our work on data-driven algorithms for low rank approximation is accepted to NeurIPS'21.</td></tr>
+		      <tr><td><li/></td><td><span style="color: #888888;">(May'21)&nbsp;&nbsp;</span></td><td>Our work on <a href="https://arxiv.org/abs/2102.08341">faster kernel matrix algebra</a> is accepted to ICML'21.</td></tr>
+                      <tr><td><li/></td><td><span style="color: #888888;">(Jan'21)&nbsp;&nbsp;</span></td><td>Our work on <a href="https://openreview.net/forum?id=tilovEHA3YS">learning-based support size estimation</a> is accepted to ICLR'21 as a spotlight.</td></tr>
+		      <tr><td><li/></td><td><span style="color: #888888;">(Sep'20)&nbsp;&nbsp;</span></td><td>I joined the Machine Learning Foundations group in MSR Redmond as a postdoc.</td></tr>
+                      <tr><td><li/></td><td><span style="color: #888888;">(Aug'20)&nbsp;&nbsp;</span></td><td>I completed my PhD in MIT.</td></tr>
+                      <!--<tr><td><li/></td><td><span style="color: #888888;">(Aug'20)&nbsp;&nbsp;</span></td><td>Piotr spoke at the IAS seminar on Theoretical Machine Learning on learning-assisted algorithms, including our ICLR'20 paper on <a href="https://arxiv.org/abs/1901.08544">learning space partitions for nearest neighbor search</a>. Here is the <a href="https://www.youtube.com/watch?v=NjiWWxOEwdM">video</a>.</td></tr>-->
+		    <!--  
+			<tr><td><li/></td><td><span style="color: #888888;">(Jul'20)&nbsp;&nbsp;</span></td><td>I spoke at the <a href="https://sites.google.com/cam.ac.uk/siam-is20-ms-ssl/">"Are we ready for semi-supervised learning for big data? From theory to practice"</a> minisymposium at <a href="https://www.siam.org/conferences/cm/conference/is20">SIAM Imaging Science 2020</a>.</td></tr>
+                      <tr><td><li/></td><td><span style="color: #888888;">(Jul'20)&nbsp;&nbsp;</span></td><td>We presented our work on <a href="https://arxiv.org/abs/1910.04126">scalable nearest neighbor search for optimal transport</a> in ICML'20. Here is the <a href="https://www.youtube.com/watch?v=xTyur_llhnM">video</a>.</td></tr>
+                  </table></ul>
+		</div>-->
+
+		<!-- Winter 2021-2022 talks in Israel
+                  <tr><td><li/></td><td><span style="color: #888888;">(Jan'22)&nbsp;&nbsp;</span></td><td>Seminar talk in Tel-Aviv University School of Computer Science.</td></tr>
+                  <tr><td><li/></td><td><span style="color: #888888;">(Jan'22)&nbsp;&nbsp;</span></td><td>Seminar talk in the Hebrew University Computer Science Colloquium.</td></tr>
+                  <tr><td><li/></td><td><span style="color: #888888;">(Jan'22)&nbsp;&nbsp;</span></td><td>Seminar talk in Ben-Gurion University Computer Science Department Seminar.</td></tr>
+                  <tr><td><li/></td><td><span style="color: #888888;">(Jan'22)&nbsp;&nbsp;</span></td><td>Seminar talk in Bar-Ilan University Computer Science Colloquium.</td></tr>
+                  <tr><td><li/></td><td><span style="color: #888888;">(Jan'22)&nbsp;&nbsp;</span></td><td>Seminar talk in the Technion Faculty of Computer Science.</td></tr>
+                  <tr><td><li/></td><td><span style="color: #888888;
+">(Dec'21)&nbsp;&nbsp;</span></td><td>Seminar talk in Tel-Aviv University Electrical Engineering-Systems Department Colloquium.</td></tr>
+                  <tr><td><li/></td><td><span style="color: #888888;">(Dec'21)&nbsp;&nbsp;</span></td><td>Seminar talk in Haifa University Computer Science Colloquium.</td></tr>
+                  <tr><td><li/></td><td><span style="color: #888888;">(Dec'21)&nbsp;&nbsp;</span></td><td>Seminar talk in Reichman University School of Computer Science.</td></tr>
+                  <tr><td><li/></td><td><span style="color: #888888;">(Nov'21)&nbsp;&nbsp;</span></td><td>Our work on <a href="https://arxiv.org/abs/2110.03152">optimal metric compression</a> is accepted to the SIAM Journal on Computing.</td></tr>-->
+		
+		<br/><hr/>
+		<h2>Publications</h2>
+
+		<div id="showpub" style="color: #445566; margin: 0 10px 20px 10px; padding: 0 15px;">[ <b>selected</b> | <a href="javascript:void(0)" onclick="showAll(false)">all</a> ]</a></div>
+
+	<ul>
+
+			<div class="selected">
+                        <li/>
+                        <a name="streamingquantization"></a><b>Quantization for Vector Search under Streaming Updates</b><br/>
+                        with <a href="https://ishaqadenali.github.io/">Ishaq Aden-Ali</a>, <a href="https://warwick.ac.uk/fac/sci/dcs/people/hakan_ferhatosmanoglu/">Hakan Ferhatosmanoglu</a>, Alexander Greaves-Tunnell and <a href="http://theory.stanford.edu/~nmishra/">Nina Mishra</a><br/>
+                        Manuscript 2025<br/>
+                        <a href="https://arxiv.org/abs/2512.18335">[arXiv]</a><br/>
+                        <br/> 
+                        </div>
+
+			<div class="selected">
+                        <li/>
+                        <a name="hnswdeletion"></a><b>Graph-based Nearest Neighbors with Dynamic Updates via Random Walks</b><br/>
+                        with <a href="http://theory.stanford.edu/~nmishra/">Nina Mishra</a>, <a href="https://yonatan.us/">Yonatan Naamad</a> and <a href="https://lczh.github.io/">Lichen Zhang</a><br/>
+                        in <a href="https://iclr.cc/Conferences/2026"><span class="venuename">ICLR 2026</span></a><br/>
+                        <a href="https://arxiv.org/abs/2512.18060">[arXiv]</a><br/>
+                        <br/> 
+                        </div>
+
+			<div class="selected">
+                        <li/>
+                        <a name="spex"></a><b>SpEx: A Spectral Approach to Explainable Clustering</b><br/>
+                        with Tal Argov<br/>
+                        in <a href="https://neurips.cc/Conferences/2025"><span class="venuename">NeurIPS 2025</span></a><br/>
+                        <a href="https://arxiv.org/abs/2511.00885">[arXiv]</a><br/>
+                        <br/>
+                        </div>
+
+			<div class="selected">
+                        <li/>
+                        <a name="shuffledpkde"></a><b>Learning from End User Data with Shuffled Differential Privacy over Kernel Densities</b><br/>
+                        in <a href="https://iclr.cc/Conferences/2025"><span class="venuename">ICLR 2025</span></a>, <font color="#990000"><i>Spotlight presentation</i></font><br/>
+						also presented in <a href="https://tpdp.journalprivacyconfidentiality.org/2025/">TPDP 2025</a><br/>
+                        <a href="https://arxiv.org/abs/2502.14087">[arXiv]</a>&nbsp;<a href="https://www.youtube.com/watch?v=h0GZ0l2_nVg">[video (5min)]</a><br/>
+                        <br/> 
+                        </div>
+
+			<div class="selected">
+                        <li/>
+                        <a name="betterkernelmvm"></a><b>Improved Algorithms for Kernel Matrix-Vector Multiplication under Sparsity Assumptions</b><br/>
+                        with <a href="https://people.csail.mit.edu/indyk/">Piotr Indyk</a>, <a href="https://theory.epfl.ch/kapralov/">Michael Kapralov</a> and <a href="https://ksheth96.github.io/">Kshiteej Sheth</a><br/>
+                        in <a href="https://iclr.cc/Conferences/2025"><span class="venuename">ICLR 2025</span></a><br/>
+			Earlier version in <a href="https://icml.cc/virtual/2024/workshop/29970">Workshop on Long Context Foundation Models (LCFM)</a> at ICML 2024, <a href="https://icml.cc/virtual/2024/39066"><font color="#990000"><b>Best Paper Award</b></font></a><br/>
+                        <a href="https://arxiv.org/abs/2507.23539">[arXiv]</a>&nbsp;<a href="https://icml.cc/virtual/2024/39059">[video by Michael (5min)]</a><br/>
+                        <br/>
+                        </div>
+
+			<div class="selected">
+                        <li/>
+                        <a name="dpkps"></a><b>Private Text Generation by Seeding Large Language Model Prompts</b><br/>
+                        with <a href="https://supriyanagesh94.github.io/">Supriya Nagesh</a>*, <a href="https://jusyc.github.io/">Justin Chen</a> and <a href="http://theory.stanford.edu/~nmishra/">Nina Mishra</a><br/>
+                        in <a href="https://genai4health.github.io/2024-NeurIPS/">Workshop on GenAI for Health: Potential, Trust and Policy Compliance</a> at NeurIPS 2024<br/>
+                        <a href="https://arxiv.org/abs/2502.13193">[arXiv]</a><br/>
+                        <br/>
+                        </div>
+
+                        <div class="selected">
+                        <li/>
+                        <a name="dpkde_lsq"></a><b>Fast Private Kernel Density Estimation via Locality Sensitive Quantization</b><br/>
+                        with <a href="https://yonatan.us/">Yonatan Naamad</a> and <a href="http://theory.stanford.edu/~nmishra/">Nina Mishra</a><br/>    
+                        in <a href="https://icml.cc/Conferences/2023"><span class="venuename">ICML 2023</span></a>, <font color="#990000"><i>Oral presentation</i></font><br/>
+                        <a href="https://openreview.net/pdf?id=gLH40bhHpm">[PDF]</a>&nbsp;<a href="publications/lsq_poster.pdf">[poster (PDF)]</a>&nbsp;<a href="https://www.youtube.com/watch?v=c5kwuSWIPlg">[video (5min)]</a>&nbsp;<a href="https://github.com/talwagner/lsq">[code]</a><br/>
+                        <br/>
+                        </div>
+
+                        <div class="regular">
+                        <li/>
+                        <a name="minibatch_ot"></a><b>Budget-Constrained Bounds for Mini-Batch Estimation of Optimal Transport</b><br/>
+                        with <a href="https://dmelis.github.io/">David Alvarez-Melis</a>, <a href="http://nicolofusi.com/">Nicolo Fusi</a> and <a href="https://web.stanford.edu/~lmackey/">Lester Mackey</a><br/>
+                        Manuscript 2023<br/>
+                        <a href="https://arxiv.org/abs/2210.13630">[arXiv]</a><br/>
+                        <br/>
+                        </div>
+
+                        <div class="regular">
+                        <li/>
+                        <a name="learned_quantiles"></a><b>Learned Interpolation for Better Streaming Quantile Approximation with Worst Case Guarantees</b><br/>
+                        with <a href="http://nicholasschiefer.com/">Nicholas Schiefer</a>, <a href="https://www.csail.mit.edu/person/anders-aamand">Anders Aamand</a>, <a href="https://people.csail.mit.edu/justc/">Justin Chen</a>, <a href="https://people.csail.mit.edu/indyk/">Piotr Indyk</a>, <a href="https://sites.google.com/view/shyamnarayanan">Shyam Narayanan</a> and <a href="https://sandeepsilwal.com/">Sandeep Silwal</a><br/>
+                        in <a href="https://www.siam.org/conferences/cm/conference/acda23"><span class="venuename">ACDA 2023</span></a><br/>
+                        <a href="https://arxiv.org/abs/2304.07652">[arXiv]</a><br/>
+                        <br/>
+                        </div>
+
+                        <div class="selected">
+                        <li/>
+                        <a name="fast_wl"></a><b>Exponentially Improving the Complexity of Simulating the Weisfeiler-Lehman Test with Graph Neural Networks</b><br/>
+                        with <a href="https://www.csail.mit.edu/person/anders-aamand">Anders Aamand</a>, <a href="https://people.csail.mit.edu/justc/">Justin Chen</a>, <a href="https://people.csail.mit.edu/indyk/">Piotr Indyk</a>, <a href="https://sites.google.com/view/shyamnarayanan">Shyam Narayanan</a>, <a href="https://people.csail.mit.edu/ronitt/">Ronitt Rubinfeld</a>, <a href="http://nicholasschiefer.com/">Nicholas Schiefer</a>  and <a href="https://sandeepsilwal.com/">Sandeep Silwal</a><br/>
+                        in <a href="https://neurips.cc/Conferences/2022"><span class="venuename">NeurIPS 2022</span></a><br/>
+                        <a href="https://arxiv.org/abs/2211.03232">[arXiv]</a><br/>
+                        <br/>
+                        </div>
+
+	                <div class="selected">
+			<li/>
+			<a name="lego_transformers"></a><b>Unveiling Transformers with LEGO: A Synthetic Reasoning Task</b><br/>
+			with <a href="https://www.yi-zhang.me/">Yi Zhang</a>, <a href="https://www.mit.edu/~backurs/">Arturs Backurs</a>, <a href="http://sbubeck.com/">Sebastien Bubeck</a>, <a href="https://www.wisdom.weizmann.ac.il/~ronene/">Ronen Eldan</a> and <a href="http://sgunasekar.github.io/">Suriya Gunasekar</a><br/>
+			Manuscript 2022<br/>
+			<a href="https://arxiv.org/abs/2206.04301">[arXiv]</a><br/>
+			<br/>
+			</div>
+
+                        <div class="selected">
+                        <li/>
+                        <a name="support-aware-histograms"></a><b>Streaming Algorithms for Support-Aware Histograms</b><br/>
+                        with <a href="https://people.csail.mit.edu/justc/">Justin Chen</a> and <a href="https://people.csail.mit.edu/indyk/">Piotr Indyk</a><br/>
+                        in <a href="https://icml.cc/Conferences/2022"><span class="venuename">ICML 2022</span></a><br/>
+                        <a href="https://arxiv.org/abs/2207.08686">[arXiv]</a>&nbsp;<a href="https://proceedings.mlr.press/v162/chen22g.html">[proceedings]</a>&nbsp;<a href="https://slideslive.com/38983393/streaming-algorithms-for-supportaware-histograms">[video by Justin (5min)]</a><br/>
+                        <br/>
+                        </div>
+
+                        <div class="selected">
+                        <li/>
+                        <a name="pac-learning-lra"></a><b>Generalization Bounds for Data-Driven Numerical Linear Algebra</b><br/>
+                        with <a href="https://www.stat.berkeley.edu/~bartlett/">Peter Bartlett</a> and <a href="https://people.csail.mit.edu/indyk/">Piotr Indyk</a><br/>
+                        in <a href="http://learningtheory.org/colt2022/"><span class="venuename">COLT 2022</span></a><br/>
+			<a href="https://arxiv.org/abs/2206.07886">[arXiv]</a>&nbsp;<a href="publications/vcdim_lingalg_forweb.pdf">[slides (PDF)]</a>&nbsp;<a href="https://youtu.be/_t3gEREjMQU">[video (20min)]</a><br/>
+                        <br/>
+                        </div>
+
+	                <div class="selected">
+                        <li/>
+                        <a name="learn-motif-count"></a><b>Triangle and Four Cycle Counting with Predictions in Graph Streams</b><br/>
+                        with <a href="https://people.csail.mit.edu/justc/">Justin Chen</a>, <a href="https://sites.google.com/view/edentalya/home">Talya Eden</a>, <a href="https://people.csail.mit.edu/indyk/">Piotr Indyk</a>, <a href="https://honghlin.github.io/">Honghao Lin</a>, <a href="https://sites.google.com/view/shyamnarayanan/home">Shyam Narayanan</a>, <a href="https://people.csail.mit.edu/ronitt/">Ronitt Rubinfeld</a>, <a href="https://sandeepsilwal.com/">Sandeep Silwal</a>, <a href="https://www.cs.cmu.edu/~dwoodruf/">David Woodruff</a> and Michael Zhang<br/>
+                        in <a href="https://iclr.cc/Conferences/2022"><span class="venuename">ICLR 2022</span></a><br/>
+                        <a href="https://arxiv.org/abs/2203.09572">[arXiv]</a><br/>
+                        <br/>
+                        </div>
+
+                        <div class="selected">
+                        <li/>
+                        <a name="opt-euclidean"></a><b>Optimal (Euclidean) Metric Compression</b><br/>
+                        with <a href="https://people.csail.mit.edu/indyk/">Piotr Indyk</a><br/>
+                        in <a href="https://www.siam.org/publications/journals/siam-journal-on-computing-sicomp"><span class="venuename">SIAM Journal on Computing</span></a> (SICOMP), 2022<br/>
+                        <a href="https://arxiv.org/abs/2110.03152">[arXiv]</a>&nbsp;<a href="https://epubs.siam.org/doi/10.1137/20M1371324">[doi]</a>&nbsp;<a href="https://www.youtube.com/watch?v=r4TVszBnZcw">[video (30min)]</a><br/>
+                        <br/>
+                        </div>
+
+                        <div class="selected">
+                        <li/>
+                        <a name="few-shot-lra"></a><b>Few-Shot Data-Driven Algorithms for Low Rank Approximation</b><br/>
+                        with <a href="https://people.csail.mit.edu/indyk/">Piotr Indyk</a> and <a href="https://www.cs.cmu.edu/~dwoodruf/">David Woodruff</a><br/>
+                        in <a href="https://neurips.cc/Conferences/2021"><span class="venuename">NeurIPS 2021</span></a><br/>
+                        <a href="https://proceedings.neurips.cc/paper/2021/file/588da7a73a2e919a23cb9a419c4c6d44-Paper.pdf">[PDF]</a>&nbsp;<a href="https://proceedings.neurips.cc/paper/2021/hash/588da7a73a2e919a23cb9a419c4c6d44-Abstract.html">[proceedings]</a><br/>
+                        <br/>
+                        </div>
+
+	                <div class="selected">
+                        <li/>
+                        <a name="kernel-matrices"></a><b>Faster Kernel Matrix Algebra via Density Estimation</b><br/>
+                        with <a href="http://www.mit.edu/~backurs/">Arturs Backurs</a>, <a href="https://people.csail.mit.edu/indyk/">Piotr Indyk</a> and <a href="https://people.cs.umass.edu/~cmusco/">Cameron Musco</a><br/>
+                        in <a href="https://icml.cc/Conferences/2021"><span class="venuename">ICML 2021</span></a><br/>
+                        <a href="https://arxiv.org/abs/2102.08341">[arXiv]</a>&nbsp;<a href="https://www.youtube.com/watch?v=jb2TBVh5Onc">[video (5min)]</a><br/>
+                        <br/>
+                        </div>
+			
+	                <div class="selected">
+                        <li/>
+                        <a name="learn-supp-size"></a><b>Learning-based Support Estimation in Sublinear Time</b><br/>
+                        with <a href="https://sites.google.com/view/edentalya/home">Talya Eden</a>, <a href="https://people.csail.mit.edu/indyk/">Piotr Indyk</a>, <a href="https://sites.google.com/view/shyamnarayanan/home">Shyam Narayanan</a>, <a href="https://people.csail.mit.edu/ronitt/">Ronitt Rubinfeld</a> and <a href="https://sandeepsilwal.com/">Sandeep Silwal</a><br/>
+                        in <a href="https://iclr.cc/Conferences/2021"><span class="venuename">ICLR 2021</span></a>, <font color="#990000"><i>Spotlight presentation</i></font><br/>
+                        <a href="https://arxiv.org/abs/2106.08396">[arXiv]</a><br/>
+                        <br/>
+                        </div>
+	  
+			<div class="selected">
+			<li/>
+                        <a name="otnn"></a><b>Scalable Nearest Neighbor Search for Optimal Transport</b><br/>
+                        with <a href="http://www.mit.edu/~backurs/">Arturs Backurs</a>, <a href="http://yihedong.me/">Yihe Dong</a>, <a href="https://people.csail.mit.edu/indyk/">Piotr Indyk</a> and <a href="https://ilyaraz.org/">Ilya Razenshteyn</a><br/>
+			in <a href="https://icml.cc/Conferences/2020/"><span class="venuename">ICML 2020</span></a><br/>
+                        Earlier version in <a href="https://sites.google.com/view/otml2019/home">OTML Workshop</a> at NeurIPS 2019<br/>
+                        <a href="https://arxiv.org/abs/1910.04126">[arXiv]</a>&nbsp;<a href="publications/icml_flowtree_flat.pdf">[slides (PDF)]</a>&nbsp;<a href="https://www.youtube.com/watch?v=xTyur_llhnM">[video (12min)]</a>&nbsp;<a href="https://github.com/ilyaraz/ot_estimators">[code]</a><br/>
+                        <br/>
+			</div>
+
+			<div class="selected">
+                        <li/>
+			<a name="neural-lsh"></a><b>Learning Space Partitions for Nearest Neighbor Search</b><br/>
+			with <a href="http://yihedong.me/">Yihe Dong</a>, <a href="https://people.csail.mit.edu/indyk/">Piotr Indyk</a> and <a href="https://ilyaraz.org/">Ilya Razenshteyn</a><br/>
+			in <a href="https://iclr.cc/Conferences/2020"><span class="venuename">ICLR 2020</span></a><br/>
+			<a href="http://arxiv.org/abs/1901.08544">[arXiv]</a>&nbsp;<a href="publications/neural_lsh_for_iclr.pdf">[slides (PDF)]</a>&nbsp;<a href="https://www.youtube.com/watch?v=vJzQO0dlMQI">[video (5min)]</a>&nbsp;<a href="https://github.com/twistedcubic/learn-to-hash">[code]</a><br/>
+			<br/>
+			</div>
+
+			<div class="regular">
+		        <li/>
+			<b>Eccentricity Heuristics through Sublinear Analysis Lenses</b><br/>
+			in <a href="https://www.siam.org/conferences/cm/conference/apocs20"><span class="venuename">APoCS 2020</span></a><br/>
+			Earlier version in <a href="https://spaa.acm.org/2019/">SPAA 2019</a> (brief announcement)<br/>
+			<a href="publications/ecc_full.pdf">[PDF]</a>&nbsp;<a href="publications/ecc_spaa.pdf">[brief announcement (PDF)]</a>&nbsp;<a href="publications/ecc_apocs_slides_flat.pdf">[slides (PDF)]</a><br/>
+			<br/>
+			</div>
+
+                        <div class="regular">
+                        <li/>
+                        <b>Multitasking Capacity: Hardness Results and Improved Constructions</b><br/>
+                        with <a href="http://www.tau.ac.il/~nogaa/">Noga Alon</a>, <a href="http://webapps.pni.princeton.edu/ncc/JDC/">Jonathan D. Cohen</a>, <a href="http://cocosci.berkeley.edu/tom/index.php">Tom Griffiths</a>, <a href="https://people.eecs.berkeley.edu/~pasin/">Pasin Manurangsi</a>, <a href="https://sites.google.com/site/danielreichman/">Daniel Reichman</a>, <a href="https://sites.google.com/site/igorshinkar/home">Igor Shinkar</a> and Alexander Yu<br/>
+                        in <a href="https://www.siam.org/publications/journals/siam-journal-on-discrete-mathematics-sidma"><span class="venuename">SIAM Journal on Discrete Mathematics</span></a> (SIDMA), 2020<br/>
+                        <a href="https://arxiv.org/abs/1809.02835">[arXiv]</a>&nbsp;<a href="https://epubs.siam.org/doi/abs/10.1137/18M1224672">[doi]</a><br/>
+                        <br/>
+                        </div>
+
+			<div class="selected">
+                        <li/>
+                        <a name="fast-kde"></a><b>Space and Time Efficient Kernel Density Estimation in High Dimensions</b><br/>
+                        with <a href="http://www.mit.edu/~backurs/">Arturs Backurs</a> and <a href="https://people.csail.mit.edu/indyk/">Piotr Indyk</a><br/>
+                        in <a href="https://neurips.cc/Conferences/2019"><span class="venuename">NeurIPS 2019</span></a><br/>
+                        <a href="publications/kde_space_full.pdf">[PDF]</a>&nbsp;<a href="publications/fastkde_slides.pdf">[slides (PDF)]</a>&nbsp;<a href="publications/fastkde_poster.pdf">[poster (PDF)]</a>&nbsp;<a href="https://github.com/talwagner/efficient_kde">[code]</a><br/>
+                        <br/>
+			</div>
+
+			<div class="selected">
+                        <li/>
+                        <a name="fair-clustering"></a><b>Scalable Fair Clustering</b><br/>
+			with <a href="http://www.mit.edu/~backurs/">Arturs Backurs</a>, <a href="https://people.csail.mit.edu/indyk/">Piotr Indyk</a>, <a href="https://onak.pl/">Krzysztof Onak</a>, Baruch Schieber and <a href="http://www.mit.edu/~vakilian/">Ali Vakilian</a><br/>
+                        in <a href="https://icml.cc/Conferences/2019"><span class="venuename">ICML 2019</span></a><br/>
+                        <a href="http://arxiv.org/abs/1902.03519">[arXiv]</a>&nbsp;<a href="https://github.com/talwagner/fair_clustering">[code]</a><br/>
+                        <br/>
+			</div>
+ 
+			<div class="selected">
+                        <li/>
+                        <a name="distance-matrices"></a><b>Sample-Optimal Low-Rank Approximation of Distance Matrices</b><br/>
+                        with <a href="https://people.csail.mit.edu/indyk/">Piotr Indyk</a>, <a href="http://www.mit.edu/~vakilian/">Ali Vakilian</a> and <a href="http://www.cs.cmu.edu/~dwoodruf/">David Woodruff</a><br/>
+                        in <a href="http://learningtheory.org/colt2019/"><span class="venuename">COLT 2019</span></a><br/>
+                        <a href="https://arxiv.org/abs/1906.00339">[arXiv]</a>&nbsp;<a href="publications/distance_low_rank_flat.pdf">[slides (PDF)]</a>&nbsp;<a href="publications/distlowrank_poster.pdf">[poster (PDF)]</a>&nbsp;<a href="https://www.youtube.com/watch?v=vpVJEVihGKI">[video (10min)]</a><br/>
+                        <br/>
+			</div>
+
+			<div class="selected">
+                        <li/>                                                                                                                                                       
+                        <a name="streaming-ssl"></a><b>Semi-Supervised Learning on Data Streams via Temporal Label Propagation</b><br/>
+			with <a href="https://www.cis.upenn.edu/~sudipto/">Sudipto Guha</a>, <a href="http://www.shivakasiviswanathan.com/">Shiva Kasiviswanathan</a> and <a href="http://theory.stanford.edu/~nmishra/">Nina Mishra</a><br/>
+			in <a href="https://icml.cc/Conferences/2018"><span class="venuename">ICML 2018</span></a><br/>
+			<a href="publications/tlp_final.pdf">[PDF]</a>&nbsp;<a href="http://proceedings.mlr.press/v80/wagner18a.html">[proceedings]</a>&nbsp;<a href="publications/tlp_icml_final_pdf.pdf">[slides (PDF)]</a>&nbsp;<a href="publications/tlp_poster_icml_truesize.pdf">[poster (PDF)]</a>&nbsp;<a href="https://youtu.be/WxQ_vTzxY-g">[video (10min)]</a><br/>
+                        <br/>
+			</div>
+
+			<div class="selected">
+                        <li/>
+                        <a name="ann-space"></a><b>Approximate Nearest Neighbors in Limited Space</b><br/>
+                        with <a href="https://people.csail.mit.edu/indyk/">Piotr Indyk</a><br/>
+                        in <a href="http://www.learningtheory.org/colt2018/"><span class="venuename">COLT 2018</span></a><br/>
+                        <a href="http://arxiv.org/abs/1807.00112">[arXiv]</a>&nbsp;<a href="publications/ann_space_colt_pdf.pdf">[slides (PDF)]</a>&nbsp;<a href="publications/ann_space_poster.pdf">[poster (PDF)]</a>&nbsp;<a href="https://www.youtube.com/watch?v=_UvkFgiAZqE">[video (10min)]</a><br/>
+                        <br/>
+			</div>
+
+			<div class="selected">
+                        <li/>
+                        <a name="quadsketch"></a><b>Practical Data-Dependent Metric Compression with Provable Guarantees</b><br/>
+                        with <a href="https://people.csail.mit.edu/indyk/">Piotr Indyk</a> and <a href="https://ilyaraz.org/">Ilya Razenshteyn</a><br/>
+                        in <a href="https://nips.cc/Conferences/2017"><span class="venuename">NeurIPS 2017</span></a><br/>
+                        <a href="http://arxiv.org/abs/1711.01520">[arXiv]</a>&nbsp;<a href="https://github.com/talwagner/quadsketch">[code]</a>&nbsp;<a href="publications/metriccompression_nips_poster.pdf">[poster (PDF)]</a><br/>
+                        <br/>
+			</div>
+
+			<div class="selected">
+			<li/>
+			<b>A Graph-Theoretic Approach to Multitasking</b><br/>
+			with <a href="http://www.tau.ac.il/~nogaa/">Noga Alon</a>, <a href="http://webapps.pni.princeton.edu/ncc/JDC/">Jonathan D. Cohen</a>, Biswadip Dey, <a href="http://cocosci.berkeley.edu/tom/index.php">Tom Griffiths</a>, Sebastian Musslick, Kayhan Ozcimder, <a href="https://sites.google.com/site/danielreichman/">Daniel Reichman</a> and <a href="https://sites.google.com/site/igorshinkar/home">Igor Shinkar</a><br/>
+			in <a href="https://nips.cc/Conferences/2017"><span class="venuename">NeurIPS 2017</span></a>, <font color="#990000"><i>Oral presentation</i></font><br/>
+			<a href="https://arxiv.org/abs/1611.02400">[arXiv]</a>&nbsp;<a href="publications/multitasking_nips_poster.pdf">[poster (PDF)]</a><br/>
+			<br/>
+			</div>
+
+			<div class="regular">
+			<li/>
+			<b>Near-Optimal (Euclidean) Metric Compression</b><br/>
+			with <a href="https://people.csail.mit.edu/indyk/">Piotr Indyk</a><br/>
+			in <a href="https://www.siam.org/meetings/da17/"><span class="venuename">SODA 2017</span></a><br/>
+			<a href="http://arxiv.org/abs/1609.06295">[arXiv]</a>&nbsp;<a href="http://dx.doi.org/10.1137/1.9781611974782.45">[doi]</a>&nbsp;<a href="publications/metric_compression_short_slides.pptx">[slides]</a><br/>
+			<br/>
+			</div>
+
+			<div class="never">
+			<li/>
+			<b>A Sampling-based Approach to Accelerating Queries in Log Management Systems</b><br/>
+			with <a href="https://cs.stanford.edu/people/eschkufz/">Eric Schkufza</a> and <a href="https://udiwieder.wordpress.com/">Udi Wieder</a><br/>
+			in <a href="http://2016.splashcon.org/"><span class="venuename">SPLASH 2016</span></a><br/>
+			<a href="http://dx.doi.org/10.1145/2984043.2989221">[doi]</a><br/>
+			<br/>
+			</div>
+
+			<div class="regular">
+			<li/>
+			<b>Towards Resistance Sparsifiers</b><br/>
+			with <a href="http://www.cs.jhu.edu/~mdinitz">Michael Dinitz</a> and <a href="http://www.wisdom.weizmann.ac.il/~robi/">Robert Krauthgamer</a><br/>
+			in <a href="http://cui.unige.ch/tcs/random-approx/2015/index.php"><span class="venuename">RANDOM 2015</span></a><br/>
+			<a href="http://arxiv.org/abs/1506.07568">[arXiv]</a>&nbsp;<a href="http://dx.doi.org/10.4230/LIPIcs.APPROX-RANDOM.2015.738">[doi]</a>&nbsp;<a href="publications/towards_resistance_sparsifiers_random2015.pdf">[slides (PDF)]</a><br/>
+			<br/>
+			</div>
+
+			<div class="regular">
+			<li/>
+			<b>Cheeger-Type Approximation for Sparsest st-Cut</b><br/>
+			with <a href="http://www.wisdom.weizmann.ac.il/~robi/">Robert Krauthgamer</a><br/>
+			in <a href="http://talg.acm.org/"><span class="venuename">ACM Transactions on Algorithms</span></a> (TALG), 2016<br/>
+			<a href="http://arxiv.org/abs/1410.3889">[arXiv]</a>&nbsp;<a href="http://dx.doi.org/10.1145/2996799">[doi]</a><br/>
+			<br/>
+			</div>
+			
+			<div class="regular">
+			<li/>
+			<b>Generalized Girth Problems in Graphs and Hypergraphs</b><br/>
+			with <a href="http://www.wisdom.weizmann.ac.il/~feige/">Uriel Feige</a><br/>
+			Manuscript 2013<br/>
+			<a href="http://www.wisdom.weizmann.ac.il/~feige/mypapers/TalWagner2016.pdf">[PDF]</a><br/>
+			<br/>
+			</div>
+
+			<div class="regular" id="last_paper">
+			<li/>
+			<b>Volume Regularization for Binary Classification </b><br/>
+			<a href="http://webee.technion.ac.il/people/koby/">Koby Crammer</a> and Tal Wagner<br/>
+			in <a href="http://nips.cc/Conferences/2012/"><span class="venuename">NeurIPS 2012</span></a>, <font color="#990000"><i>Spotlight presentation</i></font><br/>
+			<a href="publications/volumereg_nips2012.pdf">[PDF]</a><br/>
+			</div>
+		</ul>
+
+		<hr/><br/>
+
+		<div style="margin: 0 10px 20px 10px; padding: 0 15px;">
+		  <table>
+		    <tr><td><b>Ph.D. Thesis:</b>&nbsp;&nbsp;</td><td><a href="publications/TWagner-PhD-EECS-September2020.pdf">Efficient Metric Representations for Big Data</a></td></tr>
+		    <tr><td></td><td>MIT, September 2020</td></tr>
+		  </table>
+		</div>
+
+		<br/><hr/>
+		<h2>Teaching</h2>
+			<ul>
+				<li/> 03683077: Natural Language Processing (Fall 2025/6)
+			</ul>
+
+		<br/><hr/>
+            <h2>Student Supervision</h2>
+        	<ul>
+                <li/> TAU: Daniel Wolfson (MSc, ongoing), Barak Gorodisski (MSc, ongoing), Tal Argov (undergraduate research, 2024)
+				<li/> AWS interns: Malvika Raj Joshi (2025), Lichen Zhang (with Yonatan Naamad, 2024), Ishaq Aden-Ali (with Alexander Greaves-Tunnell, 2024), Justin Chen (2023)
+            </ul>
+		
+		<br/><hr/>
+
+		<!--<h2>Teaching</h2>
+			<ul>6.854: Advanced Algorithms, MIT EECS. Teaching assistant, <a href="http://courses.csail.mit.edu/6.854/16/">Fall 2016</a>.</ul>
+			<li/><b>Intro. to Computer Science</b> - <a href="http://www.cs.technion.ac.il/">CS department, Technion</a>. Teaching assistant, <a href="http://webcourse.cs.technion.ac.il/234111/Winter2009-2010/">Winter 2010</a> and <a href="http://webcourse.cs.technion.ac.il/234111/Spring2010/">Spring 2010</a>.
+		
+		<br/><br/><hr/>
+		<h2>Education</h2>
+		<ul>
+			<li/>2011-2013: M.Sc in Computer Science and Applied Mathematics, Weizmann Institute, Israel.
+			<li/>2008-2011: B.Sc in Computer Science and B.Sc in Mathematics, Technion, Israel.
+		</ul>
+		
+		<br/><br/>-->
+						
+	</div>				
+	
+</div>
+
+
 </body>
-  
 </html>

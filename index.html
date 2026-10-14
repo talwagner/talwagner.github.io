@@ -43,7 +43,7 @@
              * Because papers are listed newest first, RECENT_PUBLICATIONS_COUNT controls
              * exactly how many papers are displayed by the "recent" filter.
              */
-            var RECENT_PUBLICATIONS_COUNT = 8;
+            var RECENT_PUBLICATIONS_COUNT = 9;
             var PUBLICATION_TOPICS = [
                 { id: "ml", label: "LLMs and AI" },
                 { id: "kernels", label: "kernels" },
@@ -249,9 +249,22 @@
 
                 <ul id="publication-list">
 
+					<div class="selected" data-topics="ml kernel metric privacy">
+                        <li />
+                        <a name="nearlinearrff"></a
+                        ><b>Random Fourier Features in Near-Linear Time</b
+                        ><br />
+                        with <a href="https://www.mit.edu/~mahabadi/">Sepideh Mahabadi</a>
+                        and  <a href="https://sandeepsilwal.com/">Sandeep Silwal</a><br />
+                        Manuscript 2026<br />
+                        <a href="https://arxiv.org/abs/2610.14751">[arXiv]</a
+                        ><br />
+                        <br />
+                    </div>
+
 					<div class="selected" data-topics="ml knn metric">
                         <li />
-                        <a name="lexicure"></a
+                        <a name="queryhardness"></a
                         ><b>Learning Query Encoders Can Be Hard Even When Vector Retrieval Is Geometrically Easy</b
                         ><br />
                         with <a href="https://anders-wikum.github.io/">Anders Wikum</a>,
@@ -357,7 +370,7 @@
                         <br />
                     </div>
 
-                    <div class="selected" data-topics="kernels privacy">
+                    <div class="selected" data-topics="kernels metric privacy">
                         <li />
                         <a name="fasterkde"></a
                         ><b
